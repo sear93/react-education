@@ -161,7 +161,12 @@ export const setUserData = (id, login, email, isAuth) => {
 }
 
 export const getUserData = () => async (dispatch) => {
-    let response = await axios.get('https://social-network.samuraijs.com/api/1.0/auth/me', {withCredentials: true})
+    let response = await axios.get('https://social-network.samuraijs.com/api/1.0/auth/me', {
+        withCredentials: true,
+        headers: {
+            'API-KEY': '061b4bd5-ac47-4096-a48a-4b53dc2f1cfc'
+        }
+    })
 
     if (response.data.resultCode === 0) {
         let {id, email, login} = response.data.data;
@@ -170,7 +175,15 @@ export const getUserData = () => async (dispatch) => {
 }
 
 export const login = (email, password) => async (dispatch) => {
-    let response = await axios.post('https://social-network.samuraijs.com/api/1.0/auth/login', {email, password}, {withCredentials: true})
+    let response = await axios.post('https://social-network.samuraijs.com/api/1.0/auth/login', {
+        email,
+        password
+    }, {
+        withCredentials: true,
+        headers: {
+            'API-KEY': '061b4bd5-ac47-4096-a48a-4b53dc2f1cfc'
+        }
+    })
 
     if (response.data.resultCode === 0) {
         dispatch(getUserData())
