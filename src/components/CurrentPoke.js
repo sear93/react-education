@@ -4,8 +4,9 @@ import {setCurrentPoke, setFetching} from "../store/appReducer";
 import {useDispatch, useSelector} from "react-redux";
 import Loader from "../utils/Loader";
 import {useParams} from "react-router";
+import {Divider} from "antd";
 
-const Profile = () => {
+const CurrentPoke = () => {
 
     let currentPoke = useSelector(state => state.app.currentPoke)
     // let isLoading = useSelector(state => state.app.isLoading)
@@ -25,9 +26,9 @@ const Profile = () => {
 
     return (
         <>
-            <h1>Current Poke</h1>
+            <Divider>Current Poke</Divider>
             <div>
-                <h1>{currentPoke.species.name}</h1>
+                <h1 style={{textAlign: "center", textTransform: "uppercase"}}>{currentPoke.species.name}</h1>
                 <img style={{width: 500}}
                      src={`https://pokeres.bastionbot.org/images/pokemon/${params.id}.png`}
                      alt={params.id}/>
@@ -36,4 +37,4 @@ const Profile = () => {
     )
 };
 
-export default Profile;
+export default CurrentPoke;

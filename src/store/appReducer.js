@@ -11,21 +11,18 @@ let SET_POKES = "SET_POKES";
 let SET_CURRENT_POKE = "SET_CURRENT_POKE";
 let SET_DARKMODE = "SET_DARKMODE";
 let SET_USER_DATA = "SET_USER_DATA";
+let GET_CAPTCHA_URL = "GET_CAPTCHA_URL";
+let INITIALIZED = "INITIALIZED";
 
 // State
 
 let initialState = {
     isLoading: true,
+    initialized: false,
     name: '',
     phone: '',
     isDarkMode: false,
-    contacts: [
-        {
-            name: 'Єгор',
-            phone: '0672603248',
-            id: 1,
-        }
-    ],
+    contacts: [],
     pokes: null,
     films: null,
     currentPoke: null,
@@ -33,8 +30,10 @@ let initialState = {
         id: null,
         login: null,
         email: null,
-        isAuth: false
-    }
+        isAuth: false,
+        message: null
+    },
+    captcha: null
 }
 
 // Reducer
@@ -89,6 +88,16 @@ export let appReducer = (state = initialState, action) => {
             return {
                 ...state,
                 auth: {...action.payload}
+            }
+        case GET_CAPTCHA_URL:
+            return {
+                ...state,
+                captcha: action.captchaUrl
+            }
+        case INITIALIZED:
+            return {
+                ...state,
+                initialized: true
             }
         default:
             return state
@@ -153,47 +162,92 @@ export const setDarkMode = (isDark) => {
         isDark
     })
 }
-export const setUserData = (id, login, email, isAuth) => {
+export const setUserData = (id, login, email, isAuth, message) => {
     return ({
         type: SET_USER_DATA,
-        payload: {id, login, email, isAuth}
+        payload: {id, login, email, isAuth, message}
     })
 }
 
-export const getUserData = () => async (dispatch) => {
-    let response = await axios.get('https://social-network.samuraijs.com/api/1.0/auth/me', {
-        withCredentials: true,
-        headers: {
-            'API-KEY': '061b4bd5-ac47-4096-a48a-4b53dc2f1cfc'
-        }
+export const getCaptchaUrl = (captchaUrl) => {
+    return ({
+        type: GET_CAPTCHA_URL,
+        captchaUrl
     })
+}
+
+export const initialized = () => {
+    return ({
+        type: INITIALIZED,
+    })
+}
+
+// Thunk Creators
+
+export const getUserData = () => async (dispatch) => {
+    const response = await axios.get('https://social-network.samuraijs.com/api/1.0/auth/me',
+        {
+            withCredentials: true,
+            headers: {
+                'API-KEY': '061b4bd5-ac47-4096-a48a-4b53dc2f1cfc'
+            }
+        })
 
     if (response.data.resultCode === 0) {
-        let {id, email, login} = response.data.data;
-        dispatch(setUserData(id, login, email, true))
+        const {id, email, login} = response.data.data;
+        dispatch(setUserData(id, login, email, true, null))
     }
 }
 
-export const login = (email, password) => async (dispatch) => {
-    let response = await axios.post('https://social-network.samuraijs.com/api/1.0/auth/login', {
-        email,
-        password
-    }, {
-        withCredentials: true,
-        headers: {
-            'API-KEY': '061b4bd5-ac47-4096-a48a-4b53dc2f1cfc'
-        }
-    })
+export const login = (email, password, rememberMe, message, captcha) => async (dispatch) => {
+    try {
+        const response = await axios.post('https://social-network.samuraijs.com/api/1.0/auth/login',
+            {email, password, rememberMe, message, captcha},
+            {
+                withCredentials: true, headers: {'API-KEY': '061b4bd5-ac47-4096-a48a-4b53dc2f1cfc'}
+            })
 
-    if (response.data.resultCode === 0) {
-        dispatch(getUserData())
+        if (response.data.resultCode === 0) {
+            dispatch(getUserData())
+            dispatch(getCaptchaUrl(null))
+        } else if (response.data.resultCode === 10) {
+            dispatch(getCaptchaThunk())
+            const message = response.data.messages[0]
+            dispatch(setUserData(null, null, null, false, message))
+        } else {
+            const message = response.data.messages[0]
+            dispatch(setUserData(null, null, null, false, message))
+        }
+    } catch (error) {
+        console.log(error)
     }
 }
 
 export const logout = () => async (dispatch) => {
-    let response = await axios.delete('https://social-network.samuraijs.com/api/1.0/auth/login', {withCredentials: true})
+    try {
+        const response = await axios.delete('https://social-network.samuraijs.com/api/1.0/auth/login', {withCredentials: true})
+        if (response.data.resultCode === 0) {
+            dispatch(setUserData(null, null, null, false, null))
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
 
-    if (response.data.resultCode === 0) {
-        dispatch(setUserData(null, null, null, false))
+export const getCaptchaThunk = () => async (dispatch) => {
+    try {
+        const response = await axios.get('https://social-network.samuraijs.com/api/1.0/security/get-captcha-url', {withCredentials: true})
+        dispatch(getCaptchaUrl(response.data.url))
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export const initializedSuccess = () => async (dispatch) => {
+    try {
+        await dispatch(getUserData())
+        await dispatch(initialized())
+    } catch (error) {
+        console.log(error)
     }
 }

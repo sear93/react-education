@@ -3,7 +3,8 @@ import {useDispatch, useSelector} from "react-redux";
 import axios from "axios";
 import {setFetching, setPokes} from "../store/appReducer";
 import Loader from "../utils/Loader";
-import {NavLink} from "react-router-dom";
+import {NavLink, Redirect} from "react-router-dom";
+import {Divider} from "antd";
 
 const Pokemons = () => {
 
@@ -16,13 +17,16 @@ const Pokemons = () => {
     }, [])
 
     let pokes = useSelector(state => state.app.pokes)
+    let auth = useSelector(state => state.app.auth.isAuth)
     let dispatch = useDispatch();
 
     if (!pokes) return <Loader/>
+    if (!auth) return <Redirect to={"/login"}/>
 
     return (
         <>
-            <h3>Pokemons</h3>
+            <Divider>Pokemons</Divider>
+            {/*<Button type="primary">Hello</Button>*/}
             {pokes.map((poke, i) => {
                 return (
                     <div key={i}>

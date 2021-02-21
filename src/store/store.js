@@ -9,18 +9,12 @@ let reducers = combineReducers({
 
 let composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__  || compose;
 
-// const persistedState = localStorage.getItem('state') ? JSON.parse(localStorage.getItem('state')) : [];
+// const persistedState = loadState();
 
-const persistedState = loadState();
-
-let store = createStore(reducers, persistedState, composeEnhancers(applyMiddleware(thunk)));
+let store = createStore(reducers, composeEnhancers(applyMiddleware(thunk)));
 
 // store.subscribe(() => {
-//     localStorage.setItem('state', JSON.stringify(store.getState()));
-// })
-
-store.subscribe(() => {
-    saveState(store.getState());
-});
+//     saveState(store.getState());
+// });
 
 export default store;

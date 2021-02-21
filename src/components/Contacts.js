@@ -1,7 +1,7 @@
-import React, {useRef} from "react";
+import React from "react";
 import {useDispatch, useSelector} from "react-redux";
-import styled from 'styled-components';
 import {addNameToContact, addPhoneToContact, getInputsValue} from "../store/appReducer";
+import {Input, Button, Divider} from 'antd';
 
 const Contacts = () => {
 
@@ -10,27 +10,22 @@ const Contacts = () => {
     let phone = useSelector(state => state.app.phone)
     let dispatch = useDispatch()
 
-    let nameValue = useRef();
-    let phoneValue = useRef();
-
     return (
         <>
-            <StyledInput onChange={() => dispatch(addNameToContact(nameValue.current.value))}
-                         ref={nameValue}
-                         value={name}
-                         placeholder="Name"
-                         type="text"/>
-            <StyledInput onChange={() => dispatch(addPhoneToContact(phoneValue.current.value))}
-                         value={phone}
-                         ref={phoneValue} type="email"
-                         placeholder="Phone"
-                         pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"/>
-            <input
-                onClick={() => dispatch(getInputsValue(nameValue.current.value, phoneValue.current.value))}
-                type="submit"
-                disabled={!name || !phone}
-                value={"ADD CONTACT"}/>
-            <h1>Form</h1>
+            <Divider>Form</Divider>
+            <Input onChange={(e) => dispatch(addNameToContact(e.target.value))}
+                   value={name}
+                   style={{margin: "10px 0"}}
+                   placeholder="Name"
+                   type="text"/>
+            <Input onChange={(e) => dispatch(addPhoneToContact(e.target.value))}
+                   value={phone}
+                   placeholder="Phone"
+            />
+            <Button onClick={() => dispatch(getInputsValue(name, phone))}
+                    style={{margin: "20px 0"}}
+                    type="primary"
+                    disabled={!name || !phone}>ADD CONTACT</Button>
             <div>
                 {contacts.map(c => <div key={c.id}>{c.name}: {c.phone}</div>)}
             </div>
@@ -39,7 +34,3 @@ const Contacts = () => {
 }
 
 export default Contacts;
-
-const StyledInput = styled.input`
-  outline: none;
-`
